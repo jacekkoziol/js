@@ -1,0 +1,15 @@
+'use strict';
+
+var ieFixedPositionScrollFix = function () {
+  if(navigator.userAgent.match(/MSIE 10/i) || navigator.userAgent.match(/Trident\/7\./) || navigator.userAgent.match(/Edge\/12\./)) {
+    $('body').on("mousewheel", function () {
+      event.preventDefault();
+      var wd = event.wheelDelta || event.deltaY;
+      var csp = window.pageYOffset;
+      
+      window.scrollTo(0, csp + wd);
+    });
+  } 
+}
+
+module.exports = ieFixedPositionScrollFix;
