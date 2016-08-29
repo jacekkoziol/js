@@ -3,24 +3,10 @@ const selector = {
   btns: '[data-share-btn]'
 };
 
-const servicesScripts = {
-  'pinterest': () => {
-    const d = document;
-    let f = d.getElementsByTagName('SCRIPT')[0], p = d.createElement('SCRIPT');
-    p.type = 'text/javascript';
-    p.async = true;
-    p.src = '//assets.pinterest.com/js/pinit.js';
-    f.parentNode.insertBefore(p, f);
-  }
-};
-
 class ShareBtn {
-  constructor (initServicesScripts) {
+  constructor () {
     this.init();
-
-    if (initServicesScripts) {
-      this.initializeServicesScripts();
-    }
+    this.registerExternalScripts();
   }
 
   init () {
@@ -62,7 +48,14 @@ class ShareBtn {
   }
 
   facebook (strShareLink) {
-    window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(strShareLink), 'fb-share-dialog', 'width=626,height=436');
+    console.log(strShareLink);
+    //window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(strShareLink), 'fb-share-dialog', 'width=626,height=436');
+    FB.ui({
+      method: 'share',
+      href: strShareLink
+    }, function(response){
+      console.log(response);
+    });
   }
 
   tweeter (strShareLink) {
@@ -70,7 +63,9 @@ class ShareBtn {
   }
 
   pinterest (strShareLink) {
-    window.open('https://www.pinterest.com/pin/create/button/?url=' + encodeURIComponent(strShareLink), 'pinterest-share-dialog', 'width=750,height=534');
+    console.log(strShareLink);
+    //window.open('https://www.pinterest.com/pin/create/button/?url=' + encodeURIComponent(strShareLink) + '&media=' + encodeURIComponent(strShareLink), 'pinterest-share-dialog', 'width=750,height=534');
+    PinUtils.pinAny();
   }
 
   linkedIn (strShareLink) {
@@ -81,10 +76,46 @@ class ShareBtn {
     document.location.href = 'mailto:?&subject=&body=' + encodeURIComponent(strShareLink);
   }
 
-  initializeServicesScripts () {
+  /**
+   * Register external scripts for social services
+   * @method: registerExternalScripts
+   */
+  registerExternalScripts () {
     const $btns = $(selector.btns);
+    const d = document;
     let $arrServices = [];
     let tmpData;
+
+    const services = {
+      'pinterest': () => {
+        let f = d.getElementsByTagName('SCRIPT')[0], p = d.createElement('SCRIPT');
+        p.type = 'text/javascript';
+        p.async = true;
+        p.src = '//assets.pinterest.com/js/pinit.js';
+        f.parentNode.insertBefore(p, f);
+      },
+      'facebook': () => {
+        const s = 'script';
+        const id = 'facebook-jssdk';
+
+        let js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+          return
+        }
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1";
+        fjs.parentNode.insertBefore(js, fjs);
+
+        js.onload = () => {
+          FB.init({
+            appId      : '609802965867405',
+            status     : true,
+            xfbml      : true,
+            version    : 'v2.7' // or v2.6, v2.5, v2.4, v2.3
+          });
+        }
+      }
+    }
 
     // Search for services to share
     $btns.each((i, el) => {
@@ -101,8 +132,8 @@ class ShareBtn {
 
     // Initialize scripts for services
     $arrServices.forEach((el) => {
-      if(servicesScripts[el] && typeof servicesScripts[el] === 'function') {
-        servicesScripts[el]();
+      if(services[el] && typeof services[el] === 'function') {
+        services[el]();
       }
     });
   }
